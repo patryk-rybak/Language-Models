@@ -1,0 +1,85 @@
+	ex1
+
+Halucynacja. Chat, zadawszy pytanie sugerujące nieprawdziwą odpowiedź, odpowiada na nie błednie. Przykładem jest o pytanie o imię jedynego ocalałego z katastrofy Titanica. Chat zaczyna opisywać osobę mimo, że ocałaych było tak naprawdę około 700.
+
+	ex2
+
+
+
+	ex3
+
+Dla długich tekstów znak wodny mógłby być bardziej efektywny, ponieważ liczba słów może być wystarczająco duża, aby założona częstotliwość występowania wyrazów na litery C, S i K była widoczna.
+
+Duża liczba słów, mimo znaku wodnego, pozwala także na to, żeby generowany tekst lepiej oddawał sedno sprawy niż w przypadku krótkiego. To też zależy od obsłużenia tradeoff-u między wykrywalnością znaku wodnego a wyrazistością przekazu(?). (może to nieprawda)
+
+W przypadku krótkich tekstów model będzie gorzej oddawał sedno sprawy kosztem utrzymania czytelności znaku wodnego lub, odwrotnie — kosztem czytelności znaku wodnego, generowany tekst będzie mniej precyzyjny.
+
+	ex4
+
+a)
+few-shot learning
+wyspecyfikować zadanie w poleceniu
+fine-tuning
+sprawdzić embedding polecenie i znaleźć odległością cosinusową najbardziej zbliżone słowo
+
+b)
+Mogłoby być np. w takiej formie, że podajemy jej zbiór z rzeczownikami mając nadzieję, że wybierze najbardziej zbliżony do opisu.
+
+Jest taki problem, że słowa częsciej występujące podczas terningu będą maiły większe ppb niż te szukane.
+
+Można te funckje wykorzystać do odrzucenia najmniej prawdopodoobnych wyrazów i dopiero po odrzuceniu wyliczyć embeddingi pozostałych.
+
+	ex5
+
+Można ustawić max_new_tokens=liczba_tokenów_najdł↓zszego_słowa, wygenerować pare odpowiedzi i heurystycznei wybrać tę, która jest całym wyrazem.
+
+	ex6
+
+https://colab.research.google.com/#scrollTo=0XglJdf9pdns&fileId=https%3A//huggingface.co/flax-community/papuGaPT2/blob/main/papuGaPT2_bias_analysis.ipynb
+
+
+ogólnie ciekawe badanie - ważne z punku widzenia stereotypizacji
+
+STRONNOŚĆ PŁCI
+
+Wygenerowano 50 tekstów rozpoczynających się od podpowiedzi „Ona/On pracuje jako”. Obrazki przedstawiają powstałe chmury zawodów żeńskie/męskie. Najbardziej wyraziste określenia dotyczące zawodów męskich to: nauczyciel, przedstawiciel handlowy, programista. Do najważniejszych określeń zawodów kobiecych należą: modelka, opiekunka, recepcjonistka, kelnerka.
+
+STRONNOŚĆ POCHODZENIA ETNICZNEGO I NARODOWOŚCI
+
+Wygenerowano łącznie 1000 tekstów, które zaczynały się od osoby i kontynuowane:
+	- losową czynnością (wejście do domu)
+	- zmiarem (niech)
+	- stwirdzeniem wypowiedzi (powiedzał/a)
+	- stwirdzeniem pracy jako (pracuje jako)
+	- (jest to)
+
+wygenerowano 500 tekstów dla płciu żeńskiej i 500 dla męskiej. Dla każdego promta generowanch było 20 samlpi czyli 20*25*2 = 1000
+
+STRONNICZOŚC MOWY NIENAWIŚCI
+
+Wykorzystano model wyszkolony na korpusie polskiej mowy nienawiści, aby obliczyć prawdopodobieństwo zawierania mowy nienawiści. usunęliśmy z wygenerowanego tekstu pierwsze słowo określające narodowość/pochodzenie etniczne i płeć. (Nie rozumiem dlaczego, skoro i tak jest potem rozróżnienie na to)
+
+Tabele i wykresy przedstawiają intensywność mowy nienawiści związanej z wygenerowanymi tekstami. Wyraźnie widać, że każda z grup etnicznych/narodowości uzyskuje wynik wyższy niż neutralny poziom bazowy. Patrząc na wymiar płci, widzimy wyższy wskaźnik nienawiści jest wśród mężczyzn w porównaniu z kobietami.
+
+Wyniki pogrupowano ze względu na etniczność, płeć, temat (jedne z pięcu kontuacji promta)
+
+Nie jest zalecane stosować model GPT2 poza badaniami, chyba że zapewnione zostanie wyraźne złagodzenie błędów uprzedzeń.
+
+	ex7
+
+
+	ex8
+
+Dla tej samej tokenizacji:
+
+Pierwszy sposób polega na naprzemiennej generacji przez oba modele tzn. zaczynamy od inicjalizacji wspólnego prompta dla obu modeli i np model A generuje N tokenóœ, na powdstawie których kolejne M wygeneruje model B itd. Proces się powtarza. Dzięki temu można korzystac z róznych aspektów wiedzy obu modeli.
+
+Drugi sposób może polegać na ocenie sentymentu generowanego tekstu po każdym dodaniu nowego tokenu. W zależności od oceny, generacja kolejnego zostaje zlecona odpowiedniu modelowi.
+
+Dla różnej tokenizacji:
+
+Analogiczny pomysł do pierwszej propozycji z jedną tylko różnica, mianowicie przy zmianie moedlu konieczne jest detokenizowanie czylu zamiana na tekst.
+
+	ex9
+
+
