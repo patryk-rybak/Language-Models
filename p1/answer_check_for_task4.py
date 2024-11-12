@@ -19,11 +19,13 @@ def match(ans, cor):
 found_answers = []
 correct_answers = []
 
-for x in open('correct_answers.txt'):
+for x in open('task4_answers.txt'):
+# for x in open('czy_answers.txt'):
     x = x.strip()
     correct_answers.append(x.lower().split('\t'))
     
-for x in open('found_answers.txt'):    
+for x in open('predicted_answers_ZERO_SHOT.txt'):    
+# for x in open('czy_prediciotns.txt'):
     x = x.strip()
     found_answers.append(x.lower())
     

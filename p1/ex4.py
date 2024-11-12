@@ -8,8 +8,35 @@ logging.set_verbosity_error()
 
 model_name = 'eryk-mazus/polka-1.1b'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-specification_prompt = 'Bierzesz udział w turnieju z pytaniami. Twoim zadaniem jest poprawnie odpowiedzieć na pytanie. Odpowiedź musi byc krótka, najlepiej jednym słowem jeśli to możliwe. Powodzenia! Oto pytanie: '
+# ZERO_SHOT
+# specification_prompt = 'Odpowiedz na pytanie w sposób krótki i zwięzły. Odpowiedź powinna składać się z jednego słowa lub daty. Jeśli pytanie wymaga pojedynczego słowa, użyj najbardziej trafnego i odpowiedniego terminu.\nPytanie: '
+specification_prompt = """
+Twoim zadaniem jest udzielanie odpowiedzi na pytania w sposób faktyczny i zwięzły. 
+Dla każdego pytania, udziel odpowiedzi w jednym z następujących formatów:
+- Krótkie wyrażenie lub słowo.
+- Liczba.
+- Nazwa własna lub tytuł (np. imiona osób, miasta, wydarzenia).
+- Jeśli pytanie dotyczy wyboru spośród kilku opcji, wybierz poprawną odpowiedź i podaj ją w odpowiedniej formie.
 
+
+Przykłady:
+
+Pytanie: W którym roku odbyła się bitwa pod Grunwaldem?  
+Odpowiedź: 1410
+
+Pytanie: Kto jest autorem powieści „Lalka”?  
+Odpowiedź: Bolesław Prus
+
+Pytanie: Jak nazywał się pierwszy człowiek na Księżycu?  
+Odpowiedź: Neil Armstrong
+
+Pytanie: Co oznacza łacińskie „suprema lex”?  
+Odpowiedź: najwyższe prawo
+
+
+Oto pytanie zasadnicze:
+
+Pytanie: """
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
 
@@ -39,34 +66,26 @@ def find_asnwer(question):
             words[czy_index - 1] + ' ' + words[czy_index - 2] if czy_index - 2 >= 0 else None,
             words[czy_index + 1] + ' ' + words[czy_index + 2] if czy_index + 2 < len(words) else None
         ]
-        candidates = list(map(lambda x: (x, sentence_prob(question + " " + x if x else -inf)), candidates))
+        candidates = list(map(lambda x: (x, sentence_prob(question + " " + x) if x else -inf), candidates))
         return candidates[candidates.index(max(candidates, key=lambda x: x[1]))][0]
     else:
-        input_ids = tokenizer.encode(specification_prompt + question, return_tensors='pt').to(device)
+        input_ids = tokenizer.encode(specification_prompt + question + '\nOdpowiedź:', return_tensors='pt').to(device)
         with torch.no_grad():
-            output = model.generate(input_ids, num_return_sequences=1)
+            output = model.generate(input_ids, max_length=400, num_return_sequences=1)
         answer = tokenizer.decode(output[0], skip_special_tokens=True)
-        return answer.replace(specification_prompt, '').strip()
-    reutrn -1
-    
-def is_valid(prediciton, answer):
-    prediciton, answer = prediciton.lower(), answer.lower()
-    # ???
-    prediciton = prediciton.replace(',', '').replace('.', '')
-    answer = answer.replace(',', '').replace('.', '')
-    return prediciton == answer
+        return answer.replace(specification_prompt + question + '\nOdpowiedź:', '').strip()
 
-
-with open('task4_questions.txt', 'r') as questions, open('task4_answers.txt', 'r') as answers:
-    score = 0
-    question_counter = 0
-    for question, answer in tqdm(zip(questions, answers), total=sum(1 for _ in open('task4_questions.txt'))):
+with open('task4_questions.txt', 'r') as questions, open('predicted_answers_ZERO_SHOT.txt', 'w') as answers:
+# with open('czy_questions.txt', 'r') as questions, open('czy_prediciotns.txt', 'w') as answers:
+    predicitons = []
+    for question in tqdm(questions, total=sum(1 for _ in open('task4_questions.txt'))):
+    # for question in tqdm(questions, total=sum(1 for _ in open('czy_questions.txt'))):
         question = question.strip()
-        answer = answer.strip()
 
         prediciton = find_asnwer(question)
-        if is_valid(prediciton, answer):
-            score += 1
-        question_counter += 1
 
-print(score / question_counter)
+        if prediciton == '': prediciotn = '2137'
+        if len(prediciton.split('\n')) > 1: prediciton = prediciton.split('\n')[0]
+
+        predicitons.append(prediciton)
+    answers.write('\n'.join(predicitons))

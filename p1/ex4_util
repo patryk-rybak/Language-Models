@@ -1,0 +1,28 @@
+#!/bin/bash
+
+questions_file="task4_questions.txt"
+answers_file="task4_answers.txt"
+
+Czy_questions="Czy_questions.txt"
+Czy_answers="Czy_answers.txt"
+
+czy_questions="czy_questions.txt"
+czy_answers="czy_answers.txt"
+
+> "$czy_answers"
+> "$czy_questions"
+> "$Czy_answers"
+> "$Czy_questions"
+
+while IFS= read -r question && IFS= read -r answer <&3; do
+    if [[ "$question" =~ ^Czy\  ]] && [[ ! "$question" =~ \ czy\  ]]; then
+        echo "$question" >> "$Czy_questions"
+        echo "$answer" >> "$Czy_answers"
+    elif [[ "$question" =~ \ czy\  ]]; then
+        echo "$question" >> "$czy_questions"
+        echo "$answer" >> "$czy_answers"
+    fi
+done < "$questions_file" 3< "$answers_file"
+
+
+
