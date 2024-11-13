@@ -1,4 +1,3 @@
-
 import torch
 from transformers import logging
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -7,8 +6,8 @@ logging.set_verbosity_error()
 
 # model_name = 'flax-community/papuGaPT2'
 model_name = 'eryk-mazus/polka-1.1b'
-#device = 'cpu'
-device = 'cuda'
+device = 'cpu'
+# device = 'cuda'
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
@@ -26,13 +25,8 @@ def sentence_prob(sentence_txt):
         seq_log_probs = torch.sum(log_probs)
     return seq_log_probs.cpu().numpy()  
 
-variants = [
-    "wprost|wyprosty|wyprostu|wyprost".split("|"),
-    "uwielbiała|wielbił|wielbiła|uwielbił|wielbiło|uwielbiał|uwielbiało|uwielbiały".split("|"),
-    "słuchać|osłuchać|słychać|usłuchać". split("|"),
-    "o|i|e|a|ó|ę|y|ą|u".split("|"),
-    "wartościach własnych|owłosionych macierzy|mocarz|macierzą|macierze|mocarza|mocarze|mocarzy|macierz".split("|")
-    ]
+raw_variants = "wprost|wyprosty|wyprostu|wyprost uwielbiała|wielbił|wielbiła|uwielbił|wielbiło|uwielbiał|uwielbiało|uwielbiały słuchać|osłuchać|słychać|usłuchać o|i|e|a|ó|ę|y|ą|u wartościach własnych|owłosionych macierzy|mocarz|macierzą|macierze|mocarza|mocarze|mocarzy|macierz"
+variants = [ vs.split("|") for vs in raw_variants.split()]
 
 class BeamSearch:
     def __init__(self, variantes, beam_width=3):

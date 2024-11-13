@@ -10,8 +10,7 @@ model_name = 'eryk-mazus/polka-1.1b'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # ZERO_SHOT
 # specification_prompt = 'Odpowiedz na pytanie w sposób krótki i zwięzły. Odpowiedź powinna składać się z jednego słowa lub daty. Jeśli pytanie wymaga pojedynczego słowa, użyj najbardziej trafnego i odpowiedniego terminu.\nPytanie: '
-specification_prompt = """
-Twoim zadaniem jest udzielanie odpowiedzi na pytania w sposób faktyczny i zwięzły. 
+specification_prompt = """Twoim zadaniem jest udzielanie odpowiedzi na pytania w sposób faktyczny i zwięzły. 
 Dla każdego pytania, udziel odpowiedzi w jednym z następujących formatów:
 - Krótkie wyrażenie lub słowo.
 - Liczba.
@@ -54,7 +53,6 @@ def sentence_prob(sentence_txt):
     return seq_log_probs.cpu().numpy()
 
 def find_asnwer(question):
-    # moze dodac jescze cos z "W którym" i "Kiedy" !!!!!!!!!!!
     if question.startswith('Czy') and ' czy ' not in question:
         return 'tak' if sentence_prob(question + ' Tak.') > sentence_prob(question + ' Nie.') else 'nie'
     elif question.startswith('Czy') and ' czy ' in question:
@@ -84,7 +82,7 @@ with open('task4_questions.txt', 'r') as questions, open('predicted_answers_ZERO
 
         prediciton = find_asnwer(question)
 
-        if prediciton == '': prediciotn = '2137'
+        if prediciton == '': prediciotn = '42'
         if len(prediciton.split('\n')) > 1: prediciton = prediciton.split('\n')[0]
 
         predicitons.append(prediciton)
