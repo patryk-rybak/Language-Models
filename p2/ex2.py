@@ -50,3 +50,4 @@ with open('trie.pkl', 'wb') as file:
     pickle.dump(trie, file)
 # with open('trie_data.pkl', 'rb') as file:
 #     trie = pickle.load(file)
+

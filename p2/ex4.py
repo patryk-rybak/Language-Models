@@ -1,3 +1,5 @@
+# DO POPRAWIENIA
+
 import torch
 import re
 from transformers import logging
