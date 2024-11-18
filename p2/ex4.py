@@ -1,4 +1,5 @@
 # DO POPRAWIENIA
+# - ĠjÄĻzy
 
 import torch
 import re
@@ -6,10 +7,12 @@ from transformers import logging
 from transformers import AutoModelForCausalLM, AutoTokenizer
 logging.set_verbosity_error()
 
-# model_name = 'flax-community/papuGaPT2'
-model_name = 'eryk-mazus/polka-1.1b' # Context size: 2,048 tokens.
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+model_name = 'flax-community/papuGaPT2'
+# model_name = 'eryk-mazus/polka-1.1b' # Context size: 2,048 tokens.
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
 
 max_length = 50
 top_k = 30
@@ -18,24 +21,38 @@ temperature = 1.5
 penalty_weight = 0.8
 penalty_decay = 0.05
 specification = "Dokończ zdanie używając wyrazów zaczynających się na te same litery co prefiks. Prefiks: "
-max_iterations = 25
-punctuation_tokens = [tokenizer.convert_tokens_to_ids(token) for token in [".", ",", "?", "!"]]
+max_iterations = 50
+ending_tokens = [tokenizer.convert_tokens_to_ids(token) for token in [".", "?", "!"]]
+
+# def constraint(token, allowed_letter):
+#     res = False
+#     if not token.startswith(f"▁"): res = True
+#     elif '▁' in token[1::]: res = False
+#     elif token.startswith(f"▁{allowed_letter.lower()}"): res = True
+#     elif token.startswith(f"▁{allowed_letter.upper()}"): res = True
+#     elif token.startswith(f",▁{allowed_letter.lower()}"): res = True
+#     elif token.startswith(f",▁{allowed_letter.upper()}"): res = True
+#     elif token in {".", "?", "!"}: res = True
+#     # print('token: ', token, '\t\t',  res)
+#     return res
 
 def constraint(token, allowed_letter):
-    res = False
-    if token.startswith(f"▁{allowed_letter.lower()}"): res = True
-    elif token.startswith(f"▁{allowed_letter.upper()}"): res = True
-    elif token.startswith(f",▁{allowed_letter.lower()}"): res = True
-    elif token.startswith(f",▁{allowed_letter.upper()}"): res = True
-    elif token in {".", "?", "!"}: res = True
-    #elif not token.startswith(f"▁"): res = True
-    return res
+    for i in 'Ċ:':
+        if i in token: return False
+
+    if token in {".", "?", "!"}: return True
+    for i in '.,:;()[]{}+=-\\\/\|<>':
+        if i in token: return False
+    if token.startswith(f"Ġ{allowed_letter.lower()}"): return True
+    if not token.startswith(f"Ġ"): return True
+    return False
+    # print('token: ', token, '\t\t',  res)
 
 def filter_tokens_by_letter(logits, allowed_letter):
     vocab = tokenizer.get_vocab()
     allowed_tokens = [token for token, index in vocab.items() if constraint(token, allowed_letter)]
     allowed_token_ids = [tokenizer.convert_tokens_to_ids(token) for token in allowed_tokens]
-    mask = torch.full(logits.shape, float("-inf"))
+    mask = torch.full(logits.shape, float("-inf")).to(device)
     mask[0, allowed_token_ids] = logits[0, allowed_token_ids]
     return mask
 
@@ -54,19 +71,11 @@ def apply_top_p(logits, top_p):
     return sorted_logits, sorted_indices
 
 def choose_best_candidate(candidates):
+    print(candidates)
     cands = candidates.copy()
     scores = [0 for _ in range(len(candidates))]
     for i in range(len(candidates)):
-        match = re.search(r"[.!?] ?[A-ZĄĆĘŁŃÓŚŹŻ]", candidates[i])
-        if match:
-            end_position = match.start() + 1
-            cands[i] = candidates[i][:end_position]
-        else:
-            cands[i] = candidates[i][:max(candidates[i].find("?"), candidates[i].find("!")) + 1]
-
         score = len(cands[i]) * 20
-        score += 50 if "," in cands[i] and ", " in cands[i] else 0
-        score -= 50 if "," in cands[i] and ", " not in cands[i] else 0
         scores[i] = score
     print(cands)
     return cands[scores.index(max(scores))]
@@ -86,7 +95,7 @@ with open("prefiksy.txt", "r") as f:
             # number of candidates
             for i in range(3):
                 print(f'Generating {i+1} candidate...')
-                input_ids = tokenizer(specification + prefix, return_tensors="pt").input_ids
+                input_ids = tokenizer(specification + prefix, return_tensors="pt").input_ids.to(device)
                 # # generated_tokens = [] 
 
                 # candidate generation
@@ -94,21 +103,23 @@ with open("prefiksy.txt", "r") as f:
                     logits = model(input_ids).logits[:, -1, :]
                     filtered_logits = filter_tokens_by_letter(logits, allowed_letter)
 
-                    # w tym miejscu wypisz mi pozostałe tokeny
                     remaining_tokens = torch.topk(filtered_logits, k=filtered_logits.size(-1)).indices[0].tolist()
                     remaining_tokens_text = tokenizer.convert_ids_to_tokens(remaining_tokens)
-                    print("Pozostałe tokeny po filtrowaniu:", remaining_tokens_text)
+                    # print("Pozostałe tokeny po filtrowaniu:", remaining_tokens_text)
 
-                    exit()
+                    # exit()
 
                     # Adjust probability of punctuation tokens
                     current_length = input_ids.shape[1]
-                    if current_length < 20:
-                        for token in punctuation_tokens:
-                            filtered_logits[:, token] -= 100.0  # Decrease probability significantly
-                    elif current_length > 30:
-                        for token in punctuation_tokens:
-                            filtered_logits[:, token] += 100.0  # Increase probability significantly
+                    # print(filtered_logits)
+                    # print(torch.max(filtered_logits, dim=1))
+                    # exit()
+                    if current_length < 10:
+                        for token in ending_tokens:
+                            filtered_logits[:, token] += 50.0  # Decrease probability significantly
+                    elif current_length > 15:
+                        for token in ending_tokens:
+                            filtered_logits[:, token] -= 50.0  # Increase probability significantly
 
                     # temperatura
                     filtered_logits = filtered_logits / temperature
@@ -136,9 +147,11 @@ with open("prefiksy.txt", "r") as f:
                     
                     # looking at 4 latest tokens to see if sentance is ended
                     decoded = tokenizer.decode(input_ids[0][-4::], skip_special_tokens=True)
-                    if re.search(r"[.] [A-ZĄĆĘŁŃÓŚŹŻ]", decoded) or "?" in decoded or "!" in decoded:
+                    if '.' in decoded or "?" in decoded or "!" in decoded:
                         print("BREAK")
+                        out_of_iterations = True
                         break
+
                 
                 # decoded_text = tokenizer.decode(list(reversed(generated_tokens)), skip_special_tokens=True)
                 decoded_text = tokenizer.decode(input_ids[0], skip_special_tokens=True)

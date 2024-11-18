@@ -30,8 +30,8 @@ class Trie:
     def find_next_node(cls, starter_node, token_id):
         return starter_node.children.get(token_id.item(), None)
 
-# znajduje nalepszy token z maski
-def find_best_token(mask):
+#znajduje nalepszy token z maski
+def find_best_token(mask, p=0.9):
     # to ppb tak na serio to niepotrzebne
     ppbs = F.log_softmax(mask, dim=-1)
     return torch.argmax(ppbs, dim=-1).unsqueeze(0)
@@ -122,6 +122,7 @@ def generate_words_from_trie(trie, model, tokenizer, input_string, generation_nu
 
 
 print('Loading model...')
+# model_name = 'eryk-mazus/polka-1.1b'
 model_name = 'eryk-mazus/polka-1.1b'
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
@@ -140,15 +141,15 @@ Odpowiedź: deszcz
 Zagadka: [zagadka]
 Odpowiedź: """
 
-# print('Generating words...')
-# zagadka = 'rękopiśmienny tekst lub dokument, niepublikowany drukiem.'
-# # zagadka = 'postawa, przekonania lub działania mające na celu dyskryminację, prześladowanie lub nienawiść wobec żydów jako grupy etnicznej, religijnej lub kulturowej.'
-# prompt = prompt.replace('[zagadka]', zagadka.capitalize())
-# words = generate_words_from_trie(trie, model, tokenizer, prompt, generation_num=3)
+print('Generating words...')
+zagadka = 'rękopiśmienny tekst lub dokument, niepublikowany drukiem.'
+# zagadka = 'postawa, przekonania lub działania mające na celu dyskryminację, prześladowanie lub nienawiść wobec żydów jako grupy etnicznej, religijnej lub kulturowej.'
+prompt = prompt.replace('[zagadka]', zagadka.capitalize())
+words = generate_words_from_trie(trie, model, tokenizer, prompt, generation_num=3)
 
-# print('Decoding words...')
-# for word in words:
-#     print(tokenizer.decode(word[0].int()))
+print('Decoding words...')
+for word in words:
+    print(tokenizer.decode(word[0].int()))
 
 
 def perform_test(test_file, trie=trie, model=model, tokenizer=tokenizer, prompt=prompt):
