@@ -1,4 +1,3 @@
-# moze byc problem z generowaniem slow na wielkie litery
 import torch
 import pickle
 from torch.nn import functional as F
@@ -47,7 +46,7 @@ def create_and_save_tire(tokenizer, file_path):
         # word to tensor z id tokenow slowa
         for word in tqdm(encoded_words['input_ids'], total=len(encoded_words['input_ids'])):
             try:
-                index = (word == 2).nonzero(as_tuple=True)[0][0].item()
+                index = (word == 2).nonzero(as_tuple=True)[0][0].item() # 2 to padding token
             except:
                 index = len(word)
             word = word[1:index]
@@ -58,7 +57,7 @@ def create_and_save_tire(tokenizer, file_path):
 
 
 def generate_words_from_trie(trie, model, tokenizer, input_string, generation_num=2):
-    # RETURNs words ids in a list sorted from most probable to least probable according to beam search approach
+    # RETURNs words ids in a list sorted from most probable to least probable according to beam search
     
     # definitionsa
     node_for_each_generation = [trie.root for i in range(generation_num)]
@@ -72,10 +71,10 @@ def generate_words_from_trie(trie, model, tokenizer, input_string, generation_nu
     outputs = model(input_ids=input_ids)
     next_token_logits = outputs.logits[:, -1, :]
 
-    # Create a tensor with allowed token indices
+    # create a tensor with allowed token indices
     allowed_tokens = torch.tensor(list(node_for_each_generation[0].children.keys())).to(device)
 
-    # Mask tokens not in the current trie node
+    # mask tokens not in the current trie node
     mask = torch.full(next_token_logits.shape, float('-inf')).to(device)
     mask[0, allowed_tokens] = next_token_logits[0, allowed_tokens]
 
@@ -112,7 +111,7 @@ def generate_words_from_trie(trie, model, tokenizer, input_string, generation_nu
             next_token = find_best_token(mask)
             mask[0, next_token] = float('-inf')
             generated_words[i] = torch.cat([generated_words[i], next_token], dim=-1)
-            node_for_each_generation[i] = Trie.find_next_node(node_for_each_generation[i], next_token) # moze trzeba next_token zrobic .item() ??
+            node_for_each_generation[i] = Trie.find_next_node(node_for_each_generation[i], next_token)
 
             # is it the end of the word?
             if node_for_each_generation[i] is None or node_for_each_generation[i].is_word_end:

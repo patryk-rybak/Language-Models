@@ -1,5 +1,3 @@
-# POPRAWION
-
 import torch
 from transformers import logging
 from transformers import AutoModelForCausalLM, AutoTokenizer
