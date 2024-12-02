@@ -1,0 +1,74 @@
+ex1
+
+[tonie]
+
+	tona - jednostka masy
+	tonąć - zapadać się w coś, zagłębiać się w czymś
+ton - dźwięk o określonej wysokości
+	toń - głębia wód
+
+Antoni, z wagą równej tonie, tonie w tonie wody wykrzykujac dzięki o wysokim tonie.
+
+Odpowiedz chata:
+
+Ton (waga) - w kontekście "Antoni, z wagą równej tonie", słowo "tonie" jest formą rzeczownika "ton", który oznacza jednostkę wagi (1000 kg).
+
+Ton (czasownik) - w wyrażeniu "tonie w tonie wody", słowo "tonie" to forma czasownika "tonąć", czyli zatonąć lub zanurzać się w wodzie.
+
+Ton (dźwięk) - w zdaniu "wykrzykując dzięki o wysokim tonie", słowo "tonie" odnosi się do "tonu" jako dźwięku, wyrażającą wysokość dźwięku.
+
+
+ex2
+
+TFIDF - https://pl.wikipedia.org/wiki/TFIDF 
+
+rzadkie reprezentacji - https://en.wikipedia.org/wiki/Sparse_matrix
+
+wady:
+	- brak infomracji o relacjach miedzy termami (cechami?)
+	- potrzebna pamiec jest zalezna od wielkosci slwonika (przewaznie duza)
+	- zla wrazliwosc na warianty tego samego slowa
+	- ...		 na homografy (ta sama pisowani, inne zanczenie)
+zalety:
+	- prostota
+	- czasami sie nawet sprawdza (klasyfukacjia dokumnetow)
+
+
+Propozycja procedury:
+wszsytkie slowa zameinic na lematy i moze ustawic jakis threshold na podobienstwo cosinusowe po przerobieniu ich przez CBOF na wektory o mneijszym wymiarze. Wtedy takei wektory nieprzekraczajacego thresholdu możemy traktowac jako reprezentacje tej samej rzeczy np. zamieniajac je na nowy usredniony wektor
+
+
+ex4
+
+Na grafie przeprowadzamy random walki tworząc tym samym sekwencje odpowiadające zdaniom w tradycyjnym tekstowym korpusie. Na tak wygenerowanych korpusach wykonujemy Word2Vec.
+
+
+ex8
+
+Przed losowaniem tokenow, mozna ich ppb zamienic na ppb z dolozonym POLECAM lub NIE POLECAM po potencjalnym tokenie i w zalezosci od eg ojaki jest label opinii i w ten sposob starac sie utrzymywac wydzwiek generowanych zmian.
+
+- Ucinanie opinii w pew2nym miejscu i kazanie modelowi kontynuowac recenzje
+- Wprowadzic model w kontekst parafrazowania i dac mu recenzje do zmienienia
+- Wprowadzić w konteskt tematu np. technologii i kazadnie zmienić recenzje w tym kierunku.
+
+
+DOKONCZYC
+
+ex9
+
+1. CBOW
+Opis słowa traktujemy jako kontekst i przetwarzajac go, chcemy go upodomnic do wyrazu bedcego odpowiedzia. Potem evaluujac zwyczajnie zamieniamy opis na embedda i szukamy najblizszego slowa ze slownika. Podobnie ma sie rzecz z gotowymi przykladami, je tez uzywamy w treningu.
+
+2.
+Dodatkowo mozemy stworzyc embedded reprezentacji opisow i traktowac je jako reprezentacje opisywanych wyrazow i kozystac z nich przy szukaniu odpowiedzi
+
+3.
+
+
+ex10
+
+Tokeny co generacje sa chyba filtrowane tak, aby spełniały więzy.
+
+W związku z tym w przypadku "przede" nie będzie naturalnej kontynuacji " wszsytkim", a jendynie tokeny z bardzo niskimi scorami, no bo "przede" raczej najczesciej jest przed " wszytkim". Dlatego możemy stosować top-p i sprawdzać, czy dla okreslonej masy ppb brane jest pod uwage wystaczająco mało tokenów. Jeżeli tak, to losujemy, a jeżeli nie to cofamy się w generacji, w przypadku "przede" odhaczamy je, żeby go drugi raz nie wylosować i powtarzamy procedurę, czyli sprawdzmy jak rozkłada się masa ppb. Jeżeli jest git to losujmy bez "przede" a jak nie to znowu sie cofamy skreslajac tym razem juz cos innego itd.
+
+
