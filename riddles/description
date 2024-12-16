@@ -1,0 +1,23 @@
+Zadanie czwarte z listy 3 (o zagadkach) będzie zasadniczo zgodne ze specyfikacją zadania Riddles z olimpiady AI, należy też skorzystać z oryginalnego notebooka. Różnice są następujące:
+
+    oprócz word2vec dozwolone są następujące modele: PapuGaPT (wersja, której używaliśmy do tej pory), polka oraz HerBERT
+    można korzystać z kart graficznych
+    podzielimy wczytane zagadki na dwie części: uczącą (pierwsze 1700 zagadek) i testową (reszta, czyli 293)
+    czas działania może być dłuższy, jedyne wymaganie jest takie, żeby zagadki testowe dało się wszystkie obliczyć w Instytucie Informatyki w czasie zajęć. Trening (jeżeli potrzebny) i przetwarzanie zagadek treningowych nie mają limitu czasowego
+    Ewaluację student przeprowadza samodzielnie
+    za zadanie jest premia, liczona trochę odmiennie w stosunku do opisu z Olimpiady: wynosi ona min(3, 6*s) -- (ten wzór może zostać zmieniony na korzyść studenta, tzn. wartość 3 może być zamieniona na większą)
+    oprócz tego z zadaniem związany będzie konkurs, w którym student(ka) otrzyma wynik zależny od miejsca (5p za pierwsze miejsce, niewykluczone zgłoszenia programów Prowadzących)
+
+Punkty (po 1p) będą przyznawane będą za różne właściwości programu:
+
+    osiągnięcie przez program wartości score większej niż 0.02 (zarówno na zbiorze testowym, jak i treningowym)
+    wykorzystanie definicji
+    wykorzystanie modelu generatywnego (Papuga, polka)
+    wykorzystanie generatora ograniczonego do 'legalnych' słów
+    użycie IDF (na podstawie jakiejś listy częstości polskich słów, na przykład 1-gramy z NKJP i/lub form bazowych
+    użycie HerBERTA
+    użycie jakiejś formy uczenia maszynowego
+    jakaś forma ablation study, która stwierdza, co jest przydatne, a co nie w uzyskaniu wyniku końcowego.
+
+Zadanie jest przeznaczone na zajęcia w tygodniu rozpoczynającym się 9 grudnia (ostatnim tydogniu zajęć w tym roku kalendarzowym)
+
